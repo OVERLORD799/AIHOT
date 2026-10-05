@@ -16,7 +16,7 @@ const cert = path.join(directory, "cert.pem");
 const key = path.join(directory, "key.pem");
 await exec("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", key, "-out", cert,
   "-days", "1", "-subj", "/CN=outbound.invalid", "-addext",
-  "subjectAltName=DNS:outbound.invalid,DNS:cloudflare-dns.com,IP:127.0.0.1,IP:93.184.216.34"]);
+  "subjectAltName=DNS:outbound.invalid,DNS:dns.google,IP:127.0.0.1,IP:93.184.216.34"]);
 after(() => rm(directory, { recursive: true, force: true }));
 
 for (const route of ["direct", "proxy", "secure-proxy", "dns"] as const) {
@@ -36,7 +36,7 @@ for (const route of ["direct", "proxy", "secure-proxy", "dns"] as const) {
       const requests = [], tunnels = [], proxyProtocols = [], sockets = new Set();
       const origin = createSecureServer(options, (req, res) => {
         requests.push({ version: req.httpVersion, host: req.headers.host ?? req.headers[':authority'], sni: req.socket.servername });
-        if (req.url.startsWith('/dns-query')) {
+        if (req.url.startsWith('/resolve')) {
           res.setHeader('content-type', 'application/json');
           res.end(JSON.stringify({ Status: 0, Answer: [{ type: 1, data: '93.184.216.34', TTL: 60 }] }));
         } else res.end('ok');
@@ -106,7 +106,7 @@ for (const route of ["direct", "proxy", "secure-proxy", "dns"] as const) {
     }
     if (route === "secure-proxy") assert.deepEqual(result.proxyProtocols, ["http/1.1"]);
     if (route === "dns") {
-      assert.ok(result.requests.every(request => request.host === "cloudflare-dns.com" && request.sni === "cloudflare-dns.com"));
+      assert.ok(result.requests.every(request => request.host === "dns.google" && request.sni === "dns.google"));
     }
   });
 }

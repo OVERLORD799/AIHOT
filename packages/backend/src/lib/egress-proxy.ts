@@ -59,7 +59,7 @@ export function createEgressResolver(proxyUrl: string): Resolve {
       work = (async () => {
         const signal = AbortSignal.timeout(5_000);
         const records = (await Promise.all(["A", "AAAA"].map(async (type) => {
-          const url = new URL("https://cloudflare-dns.com/dns-query");
+          const url = new URL("https://dns.google/resolve");
           url.search = new URLSearchParams({ name: host, type }).toString();
           const res = await request(url, { dispatcher: dns, signal, headers: { accept: "application/dns-json" } });
           if (res.statusCode !== 200) { await res.body.dump(); throw new Error(`DNS upstream ${res.statusCode}`); }
